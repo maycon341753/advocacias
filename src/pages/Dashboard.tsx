@@ -56,6 +56,7 @@ const Dashboard = () => {
             ))}
           </div>
         </DataTableCard>
+        </div>
 
         {/* Upcoming Events */}
         <DataTableCard title="Próximos Compromissos">
