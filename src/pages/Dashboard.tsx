@@ -40,7 +40,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Cases */}
+        <div className="lg:col-span-2">
         <DataTableCard title="Processos Recentes">
           <div className="space-y-3">
             {mockCases.slice(0, 4).map((c) => (
