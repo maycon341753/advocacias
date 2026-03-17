@@ -10,19 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Loader2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
 const PlanosPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [editPlan, setEditPlan] = useState<any>(null);
+  type PlanRow = Database["public"]["Tables"]["plans"]["Row"];
+  const [editPlan, setEditPlan] = useState<PlanRow | null>(null);
   const [form, setForm] = useState({ name: "", description: "", price_monthly: "", max_users: "", max_cases: "", max_storage_mb: "" });
 
-  const { data: plans = [], isLoading } = useQuery({
+  const { data: plans = [], isLoading } = useQuery<PlanRow[]>({
     queryKey: ["plans"],
     queryFn: async () => {
-      const { data } = await supabase.from("plans").select("*").order("price_monthly");
-      return data || [];
+      const { data, error } = await supabase.from("plans").select("*").order("price_monthly");
+      if (error) throw error;
+      return (data ?? []) as PlanRow[];
     },
   });
 
@@ -56,7 +59,7 @@ const PlanosPage = () => {
     setOpen(true);
   };
 
-  const openEdit = (plan: any) => {
+  const openEdit = (plan: PlanRow) => {
     setEditPlan(plan);
     setForm({
       name: plan.name,
@@ -104,7 +107,7 @@ const PlanosPage = () => {
           <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plans.map((plan: any) => (
+            {plans.map((plan) => (
               <div key={plan.id} className="border border-border rounded-xl p-5 bg-muted/20 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-heading font-semibold text-foreground">{plan.name}</h4>

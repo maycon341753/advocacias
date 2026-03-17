@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { Database } from "@/integrations/supabase/types";
 
 const statusColors: Record<string, string> = {
   active: "bg-success/10 text-success border-success/20",
@@ -28,31 +29,40 @@ const statusLabels: Record<string, string> = {
 };
 
 const SuperAdminDashboard = () => {
-  const { data: tenants = [] } = useQuery({
+  type TenantRow = Database["public"]["Tables"]["tenants"]["Row"] & { plans: Pick<Database["public"]["Tables"]["plans"]["Row"], "name"> | null };
+  type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+  type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"] & {
+    plans: Pick<Database["public"]["Tables"]["plans"]["Row"], "price_monthly"> | null;
+  };
+
+  const { data: tenants = [] } = useQuery<TenantRow[]>({
     queryKey: ["admin-tenants"],
     queryFn: async () => {
-      const { data } = await supabase.from("tenants").select("*, plans(name)");
-      return data || [];
+      const { data, error } = await supabase.from("tenants").select("*, plans(name)");
+      if (error) throw error;
+      return (data ?? []) as TenantRow[];
     },
   });
 
-  const { data: profiles = [] } = useQuery({
+  const { data: profiles = [] } = useQuery<ProfileRow[]>({
     queryKey: ["admin-profiles"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id");
-      return data || [];
+      const { data, error } = await supabase.from("profiles").select("id");
+      if (error) throw error;
+      return (data ?? []) as ProfileRow[];
     },
   });
 
-  const { data: subscriptions = [] } = useQuery({
+  const { data: subscriptions = [] } = useQuery<SubscriptionRow[]>({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      const { data } = await supabase.from("subscriptions").select("*, plans(price_monthly)");
-      return data || [];
+      const { data, error } = await supabase.from("subscriptions").select("*, plans(price_monthly)");
+      if (error) throw error;
+      return (data ?? []) as SubscriptionRow[];
     },
   });
 
-  const totalRevenue = subscriptions.reduce((sum, s) => sum + ((s.plans as any)?.price_monthly || 0), 0);
+  const totalRevenue = subscriptions.reduce((sum, s) => sum + (s.plans?.price_monthly ?? 0), 0);
 
   return (
     <AppLayout title="Painel Administrativo" subtitle="Gestão da plataforma JurisControl">
@@ -68,7 +78,7 @@ const SuperAdminDashboard = () => {
           {tenants.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Nenhum escritório cadastrado ainda.</p>
           ) : (
-            tenants.map((t: any) => (
+            tenants.map((t) => (
               <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -76,7 +86,7 @@ const SuperAdminDashboard = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{(t.plans as any)?.name || "Sem plano"} · {t.slug}</p>
+                    <p className="text-xs text-muted-foreground truncate">{t.plans?.name || "Sem plano"} · {t.slug}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

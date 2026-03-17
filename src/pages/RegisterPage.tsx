@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,13 +58,15 @@ const RegisterPage = () => {
     await supabase.from("profiles").update({ tenant_id: tenant.id, full_name: fullName }).eq("user_id", userId);
 
     // 5. Assign office_admin role
-    await supabase.from("user_roles").insert({ user_id: userId, role: "office_admin" as any });
+    await supabase
+      .from("user_roles")
+      .insert({ user_id: userId, role: "office_admin" as Database["public"]["Enums"]["app_role"] });
 
     // 6. Create subscription
     await supabase.from("subscriptions").insert({
       tenant_id: tenant.id,
       plan_id: plans?.id || tenant.plan_id!,
-      status: "trial" as any,
+      status: "trial" as Database["public"]["Enums"]["subscription_status"],
     });
 
     setLoading(false);
