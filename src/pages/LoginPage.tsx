@@ -17,11 +17,18 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
     } else {
+      const userId = data.user?.id;
+      if (userId) {
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+        const isPlatformAdmin = (roles ?? []).some((r) => r.role === "platform_admin");
+        navigate(isPlatformAdmin ? "/admin/dashboard" : "/");
+        return;
+      }
       navigate("/");
     }
   };

@@ -17,7 +17,7 @@ import {
   LogOut,
   Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -33,25 +33,34 @@ const officeItems = [
 ];
 
 const adminItems = [
-  { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/admin/escritorios", icon: Building2, label: "Escritórios" },
   { to: "/admin/planos", icon: CreditCard, label: "Planos" },
   { to: "/admin/usuarios", icon: Users, label: "Usuários" },
 ];
 
-export function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+type AppSidebarProps = {
+  variant?: "desktop" | "mobile";
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+  onNavigate?: () => void;
+};
+
+export function AppSidebar({ variant = "desktop", collapsed = false, onToggleCollapsed, onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const { isPlatformAdmin, signOut, profile } = useAuth();
 
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const navItems = isPlatformAdmin && isAdminRoute ? adminItems : officeItems;
+  const navItems = useMemo(() => (isPlatformAdmin && isAdminRoute ? adminItems : officeItems), [isAdminRoute, isPlatformAdmin]);
+  const isMobile = variant === "mobile";
+  const effectiveCollapsed = isMobile ? false : collapsed;
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 flex flex-col",
-        collapsed ? "w-[72px]" : "w-[260px]"
+        "bg-sidebar text-sidebar-foreground border-sidebar-border transition-all duration-300 flex flex-col overflow-x-hidden",
+        isMobile ? "w-full h-full" : "fixed left-0 top-0 z-40 h-screen border-r",
+        effectiveCollapsed ? "w-[72px]" : "w-[260px]"
       )}
     >
       {/* Logo */}
@@ -59,7 +68,7 @@ export function AppSidebar() {
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-sidebar-primary">
           <Scale className="w-5 h-5 text-sidebar-primary-foreground" />
         </div>
-        {!collapsed && (
+        {!effectiveCollapsed && (
           <div className="overflow-hidden">
             <h1 className="text-base font-heading font-semibold text-sidebar-foreground truncate">
               JurisControl
@@ -72,11 +81,12 @@ export function AppSidebar() {
       </div>
 
       {/* Admin toggle */}
-      {isPlatformAdmin && !collapsed && (
+      {isPlatformAdmin && !effectiveCollapsed && (
         <div className="px-3 pt-3">
           <NavLink
-            to={isAdminRoute ? "/" : "/admin"}
+            to={isAdminRoute ? "/" : "/admin/dashboard"}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-sidebar-accent text-sidebar-primary transition-colors hover:bg-sidebar-accent/80"
+            onClick={() => onNavigate?.()}
           >
             <Shield className="w-4 h-4" />
             {isAdminRoute ? "Ir ao Escritório" : "Painel Admin"}
@@ -92,6 +102,7 @@ export function AppSidebar() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => onNavigate?.()}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 isActive
@@ -100,14 +111,14 @@ export function AppSidebar() {
               )}
             >
               <item.icon className={cn("w-5 h-5 shrink-0", isActive && "text-sidebar-primary")} />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {!effectiveCollapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
           );
         })}
       </nav>
 
       {/* User info + logout */}
-      {!collapsed && profile && (
+      {!effectiveCollapsed && profile && (
         <div className="px-3 pb-2">
           <div className="px-3 py-2 rounded-lg bg-sidebar-accent/50">
             <p className="text-xs font-medium text-sidebar-foreground truncate">{profile.full_name}</p>
@@ -121,16 +132,18 @@ export function AppSidebar() {
         className="flex items-center justify-center gap-2 mx-3 mb-2 py-2 rounded-lg text-xs text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
       >
         <LogOut className="w-4 h-4" />
-        {!collapsed && "Sair"}
+        {!effectiveCollapsed && "Sair"}
       </button>
 
       {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      {!isMobile && (
+        <button
+          onClick={() => onToggleCollapsed?.()}
+          className="hidden md:flex items-center justify-center h-12 border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+        >
+          {effectiveCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      )}
     </aside>
   );
 }

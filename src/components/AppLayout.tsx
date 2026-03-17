@@ -1,9 +1,12 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { AppSidebar } from "./AppSidebar";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Menu, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { useScreenSize } from "@/hooks/useScreenSize";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -13,6 +16,9 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
   const { profile, roles } = useAuth();
+  const { isMobile } = useScreenSize();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
   const roleLabelMap: Record<string, string> = {
     platform_admin: "Super Admin",
@@ -23,13 +29,33 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
   const roleLabel = roles.length > 0 ? roleLabelMap[roles[0]] || roles[0] : "Usuário";
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar />
-      <div className="ml-[260px] transition-all duration-300">
-        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
-          <div>
-            <h2 className="text-lg font-heading font-semibold text-foreground">{title}</h2>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      {!isMobile && (
+        <AppSidebar
+          variant="desktop"
+          collapsed={desktopCollapsed}
+          onToggleCollapsed={() => setDesktopCollapsed((v) => !v)}
+        />
+      )}
+
+      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <SheetContent side="left" className="p-0">
+          <AppSidebar variant="mobile" onNavigate={() => setMobileNavOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <div className={cn("transition-all duration-300", isMobile ? "ml-0" : desktopCollapsed ? "ml-[72px]" : "ml-[260px]")}>
+        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3 min-w-0">
+            {isMobile && (
+              <Button variant="ghost" size="icon" onClick={() => setMobileNavOpen(true)} aria-label="Abrir menu">
+                <Menu className="w-5 h-5" />
+              </Button>
+            )}
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-heading font-semibold text-foreground truncate">{title}</h2>
+              {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
@@ -51,7 +77,7 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
             </div>
           </div>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="p-4 sm:p-6 min-w-0">{children}</main>
       </div>
     </div>
   );

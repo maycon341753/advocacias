@@ -13,6 +13,7 @@ const RegisterPage = () => {
   const [officeName, setOfficeName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,6 +21,12 @@ const RegisterPage = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (password !== confirmPassword) {
+      setLoading(false);
+      toast({ title: "Erro no cadastro", description: "As senhas não conferem.", variant: "destructive" });
+      return;
+    }
 
     // 1. Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -31,6 +38,13 @@ const RegisterPage = () => {
     if (authError || !authData.user) {
       setLoading(false);
       toast({ title: "Erro no cadastro", description: authError?.message || "Erro desconhecido", variant: "destructive" });
+      return;
+    }
+
+    if (!authData.session) {
+      setLoading(false);
+      toast({ title: "Erro no cadastro", description: "Não foi possível autenticar automaticamente. Faça login para continuar.", variant: "destructive" });
+      navigate("/login");
       return;
     }
 
@@ -117,6 +131,10 @@ const RegisterPage = () => {
             <div className="space-y-2">
               <Label>Senha</Label>
               <Input type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="bg-muted/30" />
+            </div>
+            <div className="space-y-2">
+              <Label>Confirmar Senha</Label>
+              <Input type="password" placeholder="Repita a senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} className="bg-muted/30" />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -48,7 +48,9 @@ const App = () => (
             <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
 
             {/* Super Admin routes */}
-            <Route path="/admin" element={<ProtectedRoute requiredRole="platform_admin"><SuperAdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute requiredRole="platform_admin"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="platform_admin"><SuperAdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/Dashboard" element={<ProtectedRoute requiredRole="platform_admin"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
             <Route path="/admin/escritorios" element={<ProtectedRoute requiredRole="platform_admin"><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/planos" element={<ProtectedRoute requiredRole="platform_admin"><PlanosPage /></ProtectedRoute>} />
             <Route path="/admin/usuarios" element={<ProtectedRoute requiredRole="platform_admin"><UsuariosPage /></ProtectedRoute>} />

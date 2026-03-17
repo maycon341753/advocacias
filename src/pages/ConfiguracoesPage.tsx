@@ -4,13 +4,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Scale } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 
 const ConfiguracoesPage = () => {
+  const [devOpen, setDevOpen] = useState(false);
+
+  useEffect(() => {
+    setDevOpen(true);
+  }, []);
+
   return (
     <AppLayout title="Configurações" subtitle="White-label e preferências do escritório">
-      <div className="max-w-2xl space-y-8">
+      <Dialog open={devOpen} onOpenChange={setDevOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Em desenvolvimento</DialogTitle>
+            <DialogDescription>Esta área ainda está em desenvolvimento. Algumas ações podem não funcionar corretamente.</DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setDevOpen(false)} className="w-full">
+            Entendi
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <div className="w-full max-w-2xl space-y-8">
         {/* Branding */}
-        <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+        <div className="bg-card rounded-xl border border-border p-4 sm:p-6 animate-fade-in">
           <h3 className="font-heading font-semibold text-foreground mb-4">Identidade Visual</h3>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -32,9 +52,9 @@ const ConfiguracoesPage = () => {
         <Separator />
 
         {/* Colors */}
-        <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+        <div className="bg-card rounded-xl border border-border p-4 sm:p-6 animate-fade-in">
           <h3 className="font-heading font-semibold text-foreground mb-4">Cores do Sistema</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Cor Primária</Label>
               <div className="flex items-center gap-2">
@@ -55,7 +75,7 @@ const ConfiguracoesPage = () => {
         <Separator />
 
         {/* Domain */}
-        <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+        <div className="bg-card rounded-xl border border-border p-4 sm:p-6 animate-fade-in">
           <h3 className="font-heading font-semibold text-foreground mb-4">Domínio Personalizado</h3>
           <div className="space-y-2">
             <Label>Domínio</Label>
@@ -65,7 +85,7 @@ const ConfiguracoesPage = () => {
         </div>
 
         <div className="flex justify-end">
-          <Button>Salvar Alterações</Button>
+          <Button className="w-full sm:w-auto">Salvar Alterações</Button>
         </div>
       </div>
     </AppLayout>
