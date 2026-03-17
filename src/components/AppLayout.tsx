@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Bell, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -11,11 +12,20 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
+  const { profile, roles } = useAuth();
+
+  const roleLabelMap: Record<string, string> = {
+    platform_admin: "Super Admin",
+    office_admin: "Administrador",
+    lawyer: "Advogado",
+    assistant: "Assistente",
+  };
+  const roleLabel = roles.length > 0 ? roleLabelMap[roles[0]] || roles[0] : "Usuário";
+
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
       <div className="ml-[260px] transition-all duration-300">
-        {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
           <div>
             <h2 className="text-lg font-heading font-semibold text-foreground">{title}</h2>
@@ -24,10 +34,7 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar..."
-                className="pl-9 w-64 h-9 bg-muted/50 border-none text-sm"
-              />
+              <Input placeholder="Buscar..." className="pl-9 w-64 h-9 bg-muted/50 border-none text-sm" />
             </div>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-5 h-5 text-muted-foreground" />
@@ -38,14 +45,12 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
                 <User className="w-4 h-4 text-primary-foreground" />
               </div>
               <div className="hidden md:block">
-                <p className="text-sm font-medium text-foreground leading-tight">Dr. Carlos</p>
-                <p className="text-[10px] text-muted-foreground">Administrador</p>
+                <p className="text-sm font-medium text-foreground leading-tight">{profile?.full_name || "Usuário"}</p>
+                <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
               </div>
             </div>
           </div>
         </header>
-
-        {/* Content */}
         <main className="p-6">{children}</main>
       </div>
     </div>
